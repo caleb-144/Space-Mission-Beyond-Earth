@@ -1,27 +1,16 @@
 # Space Mission: Beyond Earth
 
-A beginner-friendly Java Swing astronaut-training game with four educational missions and local SQLite save data.
-
-## Requirements
-
-- Java 17 or newer
-- Maven 3.8 or newer
+A browser-based astronaut-training game with four educational missions. The game runs in modern browsers using HTML, CSS, and JavaScript; no installation or build step is required.
 
 ## Run
 
-From the project directory (Maven downloads the runtime dependencies as needed):
+Open `index.html` in a modern web browser, or serve the project directory with any static web server. For example:
 
 ```sh
-mvn compile exec:java
+python3 -m http.server 8000
 ```
 
-To build the application JAR:
-
-```sh
-mvn package
-```
-
-The game database is created automatically at `~/.space-mission-beyond-earth/game.db` (or the equivalent user home directory on your operating system).
+Then visit `http://localhost:8000`. Mission progress and the best score for each mission are saved in the browser's local storage.
 
 ## Missions
 
@@ -30,8 +19,11 @@ The game database is created automatically at `~/.space-mission-beyond-earth/gam
 3. **Spacewalk & Satellite Repair:** Complete three repairs before oxygen runs out.
 4. **Emergency Survival Simulation:** Choose procedures for three spacecraft emergencies and review the safety guidance.
 
-Complete both Level 1 missions to unlock Level 2. Player profiles, best mission scores, and completion status are saved locally. Replaying a mission keeps the higher score.
+Complete both Level 1 missions to unlock Level 2. Replaying a mission keeps the higher score.
 
-## Architecture
+## Browser controls
 
-The project separates Swing views, game navigation/controller logic, mission and player models, SQLite DAOs, and game progression services under `src/main/java/edu/spacemission`.
+- Zero-Gravity Training: arrow keys, WASD, or the on-screen directional buttons.
+- All other missions: use the on-screen choices and buttons.
+
+The original Java Swing implementation remains under `src/main/java` and can still be run with `mvn compile exec:java`.
