@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Defying Gravity · Space Mission Beyond Earth</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game" width="960" height="540"></canvas>
+
+  <!-- Load order matters: config -> sprites -> entities -> systems -> game -> main -->
+  <script src="js/config.js"></script>
+
+  <script src="js/sprites/SpriteFactory.js"></script>
+  <script src="js/sprites/AstronautSprite.js"></script>
+  <script src="js/sprites/AsteroidSprite.js"></script>
+  <script src="js/sprites/BackgroundSprite.js"></script>
+
+  <script src="js/entities/Astronaut.js"></script>
+  <script src="js/entities/AsteroidColumn.js"></script>
+  <script src="js/entities/SteamParticle.js"></script>
+
+  <script src="js/systems/InputHandler.js"></script>
+  <script src="js/systems/UI.js"></script>
+
+  <script src="js/Game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
