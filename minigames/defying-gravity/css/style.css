@@ -1,0 +1,30 @@
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #14122a;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  /* Keep the 16:9 shape and fit it inside the window */
+  width: min(100vw, calc((100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  image-rendering: pixelated;
+  touch-action: none;
+  display: block;
+  background: #221f3a;
+  outline: none;
+}
