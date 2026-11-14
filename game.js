@@ -105,95 +105,164 @@ function escapeHTML(value) {
   })[character]);
 }
 
+function rankInfo() {
+  const ranks = [
+    { title: "Flight Trainee", points: 0 },
+    { title: "Cadet", points: 100 },
+    { title: "Specialist", points: 200 },
+    { title: "Commander", points: 300 },
+    { title: "Mission Legend", points: 400 }
+  ];
+  const score = totalScore();
+  const index = ranks.findLastIndex(rank => score >= rank.points);
+  const current = ranks[index];
+  const next = ranks[index + 1];
+  return {
+    title: current.title,
+    progress: next ? Math.round((score - current.points) / (next.points - current.points) * 100) : 100,
+    nextPoints: next ? next.points - score : 0
+  };
+}
+
+function renderChrome() {
+  const rank = profile ? rankInfo() : null;
+  return `<header class="game-chrome">
+    <div class="game-brand"><span class="brand-mark" aria-hidden="true">✦</span>
+      <span><strong>SPACE MISSION</strong><small>BEYOND EARTH · TRAINING SIMULATOR</small></span></div>
+    <div class="chrome-status"><span class="signal-dot"></span>FLIGHT SYSTEMS ONLINE</div>
+    ${profile ? `<div class="player-chip"><span class="player-avatar">${escapeHTML(profile.character.charAt(0))}</span>
+      <span class="player-name">${escapeHTML(profile.name)}<small>${rank.title}</small></span>
+      <span class="player-score">${totalScore()}<small>PTS</small></span></div>`
+      : `<div class="academy-tag">ASTRONAUT ACADEMY</div>`}
+  </header>
+  ${profile ? `<section class="career-progress" aria-label="Career rank progress">
+    <span class="career-label">CAREER RANK</span><strong>${rank.title}</strong>
+    <div class="career-bar"><span style="width:${rank.progress}%"></span></div>
+    <span class="career-next">${rank.nextPoints ? `${rank.nextPoints} pts to next rank` : "Top rank achieved"}</span>
+  </section>` : ""}`;
+}
+
+function setPage(content, pageClass = "") {
+  app.className = "app";
+  app.innerHTML = `${renderChrome()}<div class="page-content ${pageClass}">${content}</div>
+    <footer class="game-footer"><span>SPACE MISSION: BEYOND EARTH</span><span>MISSION CONTROL · TRAINING SIM 01</span></footer>`;
+}
+
 function button(label, action, className = "") {
   return `<button class="button ${className}" data-action="${action}">${label}</button>`;
 }
 
 function renderHome() {
-  app.className = "app home";
-  app.innerHTML = `
-    <div class="eyebrow">Astronaut training program</div>
-    <h1>SPACE MISSION<br><span>BEYOND EARTH</span></h1>
-    <p class="lead">Your journey from trainee to mission specialist begins here.</p>
-    ${profile ? `<p class="lead">Welcome back, ${escapeHTML(profile.name)}.</p>` : ""}
-    <div class="menu-actions">
-      ${button("Start Game", "start", "primary")}
-      <button class="button" data-action="continue" ${profile ? "" : "disabled"}>Continue Game</button>
-      ${button("How to Play", "instructions")}
-    </div>`;
+  const completed = profile ? profile.completed.length : 0;
+  setPage(`
+    <section class="home-hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-line"></span>ASTRONAUT TRAINING PROGRAM</div>
+        <h1>YOUR NEXT<br>FRONTIER IS<br><span>OUT THERE.</span></h1>
+        <p class="lead">Train for the unknown. Master microgravity, space science, and the split-second decisions that bring a crew home.</p>
+        ${profile ? `<div class="welcome-chip"><span class="signal-dot"></span>WELCOME BACK, ${escapeHTML(profile.name.toUpperCase())}</div>` : ""}
+        <div class="menu-actions">
+          ${button(profile ? "Start New Career" : "Begin Training", "start", "primary")}
+          <button class="button secondary-action" data-action="continue" ${profile ? "" : "disabled"}>Continue Mission</button>
+          ${button("Training Guide", "instructions", "subtle")}
+        </div>
+      </div>
+      <div class="hero-illustration" aria-hidden="true">
+        <div class="orbit orbit-wide"></div><div class="orbit orbit-tight"></div>
+        <div class="hero-planet"><span></span></div><div class="hero-moon"></div>
+        <div class="hero-ship">✦</div><div class="hero-coordinates">SECTOR 01<br>EARTH ORBIT</div>
+      </div>
+    </section>
+    <section class="home-briefing">
+      <div class="briefing-item"><span class="briefing-icon">◈</span><span><strong>04</strong><small>MISSION CHALLENGES</small></span></div>
+      <div class="briefing-item"><span class="briefing-icon">⌁</span><span><strong>02</strong><small>TRAINING LEVELS</small></span></div>
+      <div class="briefing-item"><span class="briefing-icon">✧</span><span><strong>${completed} / 4</strong><small>MISSIONS CLEARED</small></span></div>
+      <div class="briefing-tag">YOUR JOURNEY STARTS HERE <span>↗</span></div>
+    </section>`, "home-page");
 }
 
 function renderNameEntry() {
-  app.className = "app";
-  app.innerHTML = `
-    <header class="topbar"><div><div class="eyebrow">New mission profile</div><h1>Welcome aboard</h1></div>
+  setPage(`
+    <header class="section-heading"><div><div class="eyebrow">NEW MISSION PROFILE</div><h1>Welcome aboard</h1></div>
       <div class="top-actions">${button("Main menu", "home", "subtle")}</div></header>
-    <section class="card mission-card" style="width:min(560px,100%);margin:auto">
+    <section class="card form-stage">
+      <div class="stage-emblem">✦</div>
       <form id="name-form">
         <label for="player-name"><h2>What should we call you, astronaut?</h2></label>
-        <p class="prompt">Your name and mission scores are saved in this browser.</p>
+        <p class="prompt">Your callsign will appear in mission control. Your progress is saved in this browser.</p>
         <input id="player-name" name="name" maxlength="24" autocomplete="given-name" required
           placeholder="Enter your name" value="${escapeHTML(draftName)}"
           style="width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:#091329;color:var(--text);margin-bottom:18px">
-        <button class="button primary" type="submit">Choose astronaut</button>
+        <button class="button primary" type="submit">Set callsign &amp; continue <span>→</span></button>
       </form>
-    </section>`;
+    </section>`, "form-page");
 }
 
 function renderCharacterSelection() {
-  app.className = "app";
-  app.innerHTML = `
-    <header class="topbar"><div><div class="eyebrow">Crew selection</div><h1>Choose your astronaut</h1>
-      <p>Welcome aboard, ${escapeHTML(draftName)}. Select a crew member for your mission.</p></div>
+  setPage(`
+    <header class="section-heading"><div><div class="eyebrow">CREW SELECTION · ${escapeHTML(draftName.toUpperCase())}</div><h1>Choose your astronaut</h1>
+      <p>Select the crew member who will join you on this mission.</p></div>
       <div class="top-actions">${button("Back to menu", "home", "subtle")}</div></header>
-    <section class="screen-content character-grid">
+    <section class="character-grid">
       ${characterCard("Ali", "#55c7e8", "A calm, curious trainee who loves spacecraft engineering.")}
       ${characterCard("Alicia", "#ff9f70", "A bold problem-solver ready to explore beyond Earth.")}
-    </section>`;
+    </section>`, "character-page");
 }
 
 function characterCard(name, color, description) {
   return `<article class="card character-card">
     <div class="astronaut" style="--suit:${color}" aria-hidden="true"><div class="helmet"></div><div class="body-suit"></div></div>
+    <div class="crew-role">FLIGHT CREW · ${name === "Ali" ? "ENGINEERING" : "EXPLORATION"}</div>
     <h2>${name}</h2><p>${description}</p>${button(`Select ${name}`, `character-${name}`, "primary")}
   </article>`;
 }
 
 function renderMissionControl() {
   const completedBasic = profile.completed.includes(1) && profile.completed.includes(2);
-  app.className = "app";
-  app.innerHTML = `
-    <header class="topbar">
-      <div><div class="eyebrow">Mission control</div><h1>Ready for launch, ${escapeHTML(profile.name)}?</h1>
-        <p>${escapeHTML(profile.character)} · ${totalScore()} total points</p></div>
+  const cleared = profile.completed.length;
+  setPage(`
+    <header class="section-heading"><div><div class="eyebrow">MISSION CONTROL · FLIGHT DECK 01</div><h1>Campaign overview</h1>
+        <p>Welcome back, ${escapeHTML(profile.name)}. Choose your next objective.</p></div>
       <div class="top-actions">${button("Change astronaut", "change-character")}
         ${button("Main menu", "home", "subtle")}</div>
     </header>
-    <section class="screen-content level-grid">
-      ${levelCard("Level 1 / Basic Training", "Master movement in microgravity and pass your knowledge check.", [missions[0], missions[1]], true)}
-      ${levelCard("Level 2 / Spacecraft Operations",
+    <section class="campaign-progress">
+      <div class="campaign-copy"><span class="campaign-icon">⌖</span><span><strong>CAMPAIGN PROGRESS</strong><small>${cleared} OF 4 OBJECTIVES CLEARED</small></span></div>
+      <div class="campaign-track" aria-label="${cleared} of 4 missions complete">${missions.map((mission, index) =>
+        `<span class="${profile.completed.includes(mission.id) ? "cleared" : ""} ${index === 2 && !completedBasic ? "track-locked" : ""}"></span>`).join("")}</div>
+      <span class="campaign-points">${totalScore()} <small>PTS</small></span>
+    </section>
+    <section class="level-grid">
+      ${levelCard("Basic Training", "Master movement in microgravity and pass your knowledge check.", [missions[0], missions[1]], true, 1)}
+      ${levelCard("Spacecraft Operations",
         completedBasic ? "Unlocked — complete a spacewalk repair and respond to emergencies." : "Locked — complete both Level 1 missions to qualify.",
-        [missions[2], missions[3]], completedBasic)}
-    </section>`;
+        [missions[2], missions[3]], completedBasic, 2)}
+    </section>`, "control-page");
 }
 
-function levelCard(title, description, list, unlocked) {
+function levelCard(title, description, list, unlocked, level) {
   return `<article class="card level-card">
-    <h2>${title}</h2><p class="${unlocked ? "" : "locked"}">${description}</p>
+    <div class="level-heading"><span class="level-number ${unlocked ? "" : "dimmed"}">0${level}</span>
+      <div><div class="level-label">LEVEL 0${level} ${level === 1 ? "· FOUNDATION" : "· ADVANCED"}</div><h2>${title}</h2></div>
+      <span class="status-tag ${unlocked ? "status-open" : "status-locked"}">${unlocked ? "AVAILABLE" : "LOCKED"}</span></div>
+    <p class="${unlocked ? "" : "locked"}">${description}</p>
     <div class="mission-list">${list.map(mission => {
       const score = profile.bestScores[mission.id];
-      return `<div class="mission-item"><div><h3>${mission.name}</h3>
-        <p>${score === undefined ? "Not complete" : `Complete · best ${score} pts`}</p></div>
-        <button class="button" data-action="mission-${mission.id}" ${unlocked ? "" : "disabled"}>${score === undefined ? "Play mission" : "Replay"}</button></div>`;
+      const completed = profile.completed.includes(mission.id);
+      return `<div class="mission-item ${completed ? "mission-cleared" : ""}">
+        <span class="mission-token ${completed ? "token-cleared" : ""}">${completed ? "✓" : `0${mission.id}`}</span>
+        <div class="mission-info"><span class="mission-type">MISSION 0${mission.id}</span><h3>${mission.name}</h3>
+          <p>${score === undefined ? mission.detail : `Best score · ${score} / 100`}</p></div>
+        <span class="mission-state ${completed ? "state-cleared" : ""}">${completed ? "CLEARED" : "READY"}</span>
+        <button class="button ${completed ? "replay-button" : "mission-launch"}" data-action="mission-${mission.id}" ${unlocked ? "" : "disabled"}>${completed ? "Replay ↻" : "Launch →"}</button></div>`;
     }).join("")}</div></article>`;
 }
 
 function renderInstructions() {
-  app.className = "app";
-  app.innerHTML = `
-    <header class="topbar"><div><div class="eyebrow">Flight manual</div><h1>How to Play</h1></div>
+  setPage(`
+    <header class="section-heading"><div><div class="eyebrow">FLIGHT MANUAL · TRAINEE BRIEFING</div><h1>How to Play</h1></div>
       <div class="top-actions">${button("Main menu", "home", "subtle")}</div></header>
-    <section class="card instructions">
+    <section class="card instructions"><div class="manual-stamp">FIELD GUIDE <span>SMB · 01</span></div>
       <h2>Your training path</h2>
       <ul><li>Choose Ali or Alicia. Your astronaut and mission progress are saved in this browser.</li>
       <li>Complete both Basic Training missions to unlock spacecraft operations.</li>
@@ -203,12 +272,24 @@ function renderInstructions() {
       <h2>Spacewalk &amp; Satellite Repair</h2><p>Complete each repair before oxygen runs out. Each repair and the oxygen remaining contribute to your score.</p>
       <h2>Emergency Survival</h2><p>Read each spacecraft scenario and select the safest procedure. Explanations reinforce the correct response.</p>
       <p>Your total score and mission completion status are saved automatically in local browser storage.</p>
-    </section>`;
+    </section>`, "manual-page");
 }
 
-function renderMissionHeader(title, subtitle) {
-  return `<header class="topbar"><div><div class="eyebrow">Mission in progress</div><h1>${title}</h1><p>${subtitle}</p></div>
-    <div class="top-actions">${button("Leave mission", "missions", "subtle")}</div></header>`;
+function renderMissionHeader(id, title, subtitle) {
+  const category = id <= 2 ? "BASIC TRAINING" : "SPACECRAFT OPERATIONS";
+  return `<header class="mission-banner">
+    <span class="mission-emblem">0${id}</span>
+    <div class="mission-banner-copy"><div class="eyebrow">MISSION 0${id} <span>·</span> ${category}</div><h1>${title}</h1><p>${subtitle}</p></div>
+    <span class="mission-live"><i></i>IN PROGRESS</span>
+    <div class="mission-exit">${button("Leave mission", "missions", "subtle")}</div>
+  </header>`;
+}
+
+function objectiveProgress(current, total, label) {
+  const percent = Math.round(current / total * 100);
+  return `<div class="objective-progress"><div class="objective-label"><span>${label}</span><strong>${current} <small>/ ${total}</small></strong></div>
+    <div class="objective-track" role="progressbar" aria-label="${label}" aria-valuenow="${current}" aria-valuemin="0" aria-valuemax="${total}">
+      <span style="width:${percent}%"></span></div></div>`;
 }
 
 function renderTraining() {
@@ -224,61 +305,66 @@ function renderTraining() {
       cells.push(`<div class="cell ${kind}" aria-label="${kind || "empty"}">${icon}</div>`);
     }
   }
-  app.className = "app mission-panel";
-  app.innerHTML = `${renderMissionHeader("Zero-Gravity Training", "Collect all 3 glowing beacons, avoid debris, then reach the green airlock.")}
+  setPage(`${renderMissionHeader(1, "Zero-Gravity Training", "Collect all 3 glowing beacons, avoid debris, then reach the green airlock.")}
     <div class="mission-body"><section class="training-layout">
       <div class="board" role="img" aria-label="Training grid: astronaut, beacons, debris, and airlock">${cells.join("")}</div>
-      <div class="training-status"><span>Beacons: ${round.collected.length} / 3</span><span>Moves: ${round.moves}${round.collected.length === 3 ? " · Airlock ready!" : ""}</span></div>
+      <div class="training-hud"><div>${objectiveProgress(round.collected.length, 3, "TRAINING BEACONS")}</div>
+        <span class="moves-counter"><small>FLIGHT MOVES</small><strong>${String(round.moves).padStart(2, "0")}</strong></span></div>
+      <div class="training-status"><span>${round.collected.length === 3 ? "AIRLOCK UNLOCKED · REACH THE EXIT" : "COLLECT ALL BEACONS TO UNLOCK AIRLOCK"}</span><span>ARROWS / WASD</span></div>
       <div class="dpad" aria-label="Movement controls">
         <button class="button up" data-action="move-up" aria-label="Move up">↑</button>
         <button class="button left" data-action="move-left" aria-label="Move left">←</button>
         <button class="button down" data-action="move-down" aria-label="Move down">↓</button>
         <button class="button right" data-action="move-right" aria-label="Move right">→</button>
       </div>
-    </section></div>`;
+    </section></div>`, "mission-page");
 }
 
 function renderQuiz() {
   const [text, options] = questions[round.index];
-  app.className = "app mission-panel";
-  app.innerHTML = `${renderMissionHeader("Space Knowledge Assessment", "Choose the best answer. Explanations follow every response.")}
-    <div class="mission-body"><section class="card mission-card">
-      <div class="progress-label">QUESTION ${round.index + 1} OF ${questions.length}</div>
-      <h2 style="margin-top:16px">${text}</h2>
+  setPage(`${renderMissionHeader(2, "Space Knowledge Assessment", "Choose the best answer. Explanations follow every response.")}
+    <div class="mission-body"><section class="card mission-card quiz-card">
+      <div class="quiz-topline"><div class="progress-label">KNOWLEDGE CHECK <span>·</span> QUESTION ${String(round.index + 1).padStart(2, "0")}/${questions.length}</div>
+        ${objectiveProgress(round.index + (round.selected !== null ? 1 : 0), questions.length, "ASSESSMENT PROGRESS")}</div>
+      <h2>${text}</h2>
       <div class="options">${options.map((option, i) => `<button class="button option ${round.selected === i ? "selected" : ""}" data-action="answer-${i}" ${round.selected !== null ? "disabled" : ""}>${String.fromCharCode(65 + i)}　${option}</button>`).join("")}</div>
       <p class="feedback ${round.feedbackClass || ""}">${round.feedback || "Choose the best answer."}</p>
       ${round.selected !== null ? `<div class="quiz-footer"><span></span>${button(round.index === questions.length - 1 ? "See results" : "Next question", "advance", "primary")}</div>` : ""}
-    </section></div>`;
+    </section></div>`, "mission-page");
 }
 
 function renderEmergency() {
   const scenario = emergencies[round.index];
-  app.className = "app mission-panel";
-  app.innerHTML = `${renderMissionHeader("Emergency Survival Simulation", "Select the safest procedure for each situation.")}
-    <div class="mission-body"><section class="card mission-card">
-      <div class="progress-label">EMERGENCY ${round.index + 1} OF ${emergencies.length}</div>
-      <h2 style="margin-top:16px">${scenario.title}</h2><p class="prompt">${scenario.prompt}</p>
+  setPage(`${renderMissionHeader(4, "Emergency Survival Simulation", "Select the safest procedure for each situation.")}
+    <div class="mission-body"><section class="card mission-card quiz-card">
+      <div class="quiz-topline"><div class="progress-label">EMERGENCY SIMULATION <span>·</span> SCENARIO 0${round.index + 1}/${emergencies.length}</div>
+        ${objectiveProgress(round.index + (round.selected !== null ? 1 : 0), emergencies.length, "CREW SAFETY CHECK")}</div>
+      <div class="scenario-heading"><span class="alert-icon">!</span><div><h2>${scenario.title}</h2><p class="prompt">${scenario.prompt}</p></div></div>
       <div class="options">${scenario.choices.map((choice, i) => `<button class="button option ${round.selected === i ? "selected" : ""}" data-action="answer-${i}" ${round.selected !== null ? "disabled" : ""}>${String.fromCharCode(65 + i)}　${choice}</button>`).join("")}</div>
       <p class="feedback ${round.feedbackClass || ""}">${round.feedback || "Select the safest procedure."}</p>
       ${round.selected !== null ? `<div class="quiz-footer"><span></span>${button(round.index === emergencies.length - 1 ? "See results" : "Next scenario", "advance", "primary")}</div>` : ""}
-    </section></div>`;
+    </section></div>`, "mission-page");
 }
 
 function renderRepair() {
   const task = round.task;
   const failed = round.oxygen <= 0;
-  app.className = "app mission-panel";
-  app.innerHTML = `${renderMissionHeader("Spacewalk & Satellite Repair", "Work carefully outside the spacecraft. Oxygen is limited.")}
+  setPage(`${renderMissionHeader(3, "Spacewalk & Satellite Repair", "Work carefully outside the spacecraft. Oxygen is limited.")}
     <div class="mission-body"><section class="card mission-card">
-      <div class="repair-scene" aria-hidden="true"><div class="repair-art">✦　◉　✦<br>┌───────────────┐<br>　🧑‍🚀　　▥</div></div>
-      <div class="oxygen-row"><strong>OXYGEN　${round.oxygen}%</strong><div class="oxygen-bar" role="progressbar" aria-label="Oxygen" aria-valuenow="${round.oxygen}" aria-valuemin="0" aria-valuemax="100">
+      <div class="repair-scene" aria-hidden="true"><div class="satellite-illustration">
+        <div class="solar-panel panel-left"><i></i><i></i><i></i></div><div class="satellite-core"><span>◈</span></div>
+        <div class="solar-panel panel-right"><i></i><i></i><i></i></div><div class="repair-astronaut">🧑‍🚀</div>
+      </div><span class="scene-label">EXTERNAL PAYLOAD · EVA LINK ACTIVE</span></div>
+      <div class="oxygen-row"><div class="oxygen-reading"><span>SUIT OXYGEN</span><strong>${String(round.oxygen).padStart(2, "0")}<small>%</small></strong></div><div class="oxygen-bar" role="progressbar" aria-label="Oxygen" aria-valuenow="${round.oxygen}" aria-valuemin="0" aria-valuemax="100">
         <div class="oxygen-fill ${round.oxygen < 25 ? "low" : ""}" style="width:${round.oxygen}%"></div></div></div>
-      <h2>${failed ? "Oxygen depleted" : `REPAIR ${task + 1} OF 3`}</h2>
-      <p class="prompt">${failed ? "Return to mission control and try again." : repairTasks[task]}</p>
+      <div class="repair-task-header"><div><div class="eyebrow">CURRENT EVA OBJECTIVE</div>
+        <h2>${failed ? "Oxygen depleted" : `Repair ${String(task + 1).padStart(2, "0")} · ${repairTasks[task]}`}</h2>
+        <p class="prompt">${failed ? "Return to mission control and try again." : "Complete the procedure before your suit reserve runs out."}</p></div>
+        ${objectiveProgress(task, repairTasks.length, "REPAIRS COMPLETE")}</div>
       <div class="repair-actions">${failed
         ? button("Return to mission control", "missions", "primary")
         : button("Complete repair task", "repair", "primary")}</div>
-    </section></div>`;
+    </section></div>`, "mission-page");
 }
 
 function renderResult() {
@@ -288,13 +374,18 @@ function renderResult() {
   const message = score >= 85 ? "Excellent work, mission specialist!"
     : score >= 60 ? "Good progress. Keep building your skills."
       : "Training complete. Replay to improve your score.";
-  app.className = "app";
-  app.innerHTML = `<section class="card result-card">
-    <div class="eyebrow">Mission debrief</div><h1>Mission complete</h1><p class="lead">${mission.name}</p>
-    <div class="score ${score < 70 ? "low" : ""}">${score} <span style="font-size:.4em;color:var(--muted)">/ 100</span></div>
-    <p>${message}</p><p class="prompt">Previous best: ${best} points · Best score is saved automatically.</p>
+  const stars = score >= 85 ? "★★★" : score >= 60 ? "★★☆" : "★☆☆";
+  setPage(`<section class="card result-card">
+    <div class="result-orbit"><div class="result-medal">✦</div></div>
+    <div class="eyebrow">MISSION 0${mission.id} · DEBRIEF COMPLETE</div><h1>Mission complete</h1><p class="lead">${mission.name}</p>
+    <div class="result-stars" aria-label="${score >= 85 ? "Three" : score >= 60 ? "Two" : "One"} star rating">${stars}</div>
+    <div class="score ${score < 70 ? "low" : ""}">${score} <span>/ 100</span></div>
+    <p class="result-message">${message}</p>
+    <div class="result-stat-row"><div><small>PREVIOUS BEST</small><strong>${best} <span>PTS</span></strong></div>
+      <div><small>CAREER TOTAL</small><strong>${totalScore()} <span>PTS</span></strong></div>
+      <div><small>RANK</small><strong>${rankInfo().title}</strong></div></div>
     <div class="result-actions">${button("Replay mission", `mission-${mission.id}`, "primary")}${button("Back to mission control", "missions")}</div>
-  </section>`;
+  </section>`, "result-page");
 }
 
 function totalScore() {
